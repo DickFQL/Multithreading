@@ -1,4 +1,4 @@
-package org.example;
+package org.example.practice;
 
 public class SyncThread {
     public static void main(String[] args) throws InterruptedException {

@@ -1,4 +1,4 @@
-package org.example;
+package org.example.practice;
 
 public class Interrupt {
     public static void main(String[] args) throws InterruptedException {

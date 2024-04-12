@@ -1,4 +1,4 @@
-package org.example;
+package org.example.practice;
 
 /**
  * Learn Java from https://www.liaoxuefeng.com/
