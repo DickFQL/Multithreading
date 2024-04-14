@@ -1,12 +1,13 @@
-package org.example.handlerfile;
+package org.example.yupi;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class  ThreadPool{
+public class ThreadPool {
     /**
      * 分割方式
      * @param integer
@@ -106,6 +107,7 @@ public class  ThreadPool{
      */
     public static String handlerFormat(String line,String regex,Integer integer){
 //        若字符从第一位、最后一位为分隔符，在最后添加空字符串
+//        该部份存在一定问题，需更好编写
         if (line.charAt(0) == regex.charAt(0)) line = "''" + line;
         if (line.charAt(line.length()-1) == regex.charAt(0)) line += "''";
 //        分割
@@ -137,24 +139,35 @@ public class  ThreadPool{
      * @param regex
      */
     public static void handlerformal(String inputFilePath,String outputFilePathDouble,String regex){
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath));BufferedWriter bw = new BufferedWriter(new FileWriter(outputFilePathDouble))) {
-            System.out.println("文件读取成功，正在处理");
-            //第一行数据处理
-            String line = br.readLine();
-
-            String[] split = line.split(regex);
-            int len = split.length;
-            bw.write(handlerFormat(line,regex,len));
-//            line = br.readLine();
-            //第二行至末尾数据处理
-            while((line = br.readLine())!=null){
+        int numberOfThreads = Runtime.getRuntime().availableProcessors(); // 使用可用的处理器数量
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+        BufferedWriter bw = null;
+        try {
+            bw = new BufferedWriter(new FileWriter(outputFilePathDouble));
+            try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath))) {
+                System.out.println("文件读取成功，正在处理");
+                //第一行数据处理
+                String line = br.readLine();
+                String[] split = line.split(regex);
+                int len = split.length;
+                System.out.println("执行到这里洛");
                 bw.write(handlerFormat(line,regex,len));
+//            line = br.readLine();
+                //第二行至末尾数据处理
+                while((line = br.readLine())!=null){
+                    executor.submit(new Concurrency(line,regex,len,bw));
+                }
+                System.out.println("文件处理完成时间:"+System.currentTimeMillis());
+            } catch (FileNotFoundException ex) {
+                throw new RuntimeException(ex);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
-            System.out.println("文件处理完成："+System.currentTimeMillis());
-        } catch (FileNotFoundException ex) {
-            throw new RuntimeException(ex);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            executor.shutdown();
+            System.out.println("线程关闭");
         }
     }
 
@@ -176,14 +189,15 @@ public class  ThreadPool{
             //第二行至末行数据填写
             String regexValue1 = ">(.*?)[\\[\\)]";
             do {
-            String value1 = regexLine(line,regexValue1);
-            bw.write(value1+"\n");
+                String value1 = regexLine(line,regexValue1);
+                bw.write(value1+"\n");
             }while ((line = br.readLine())!=null);
 
             System.out.println("文件处理完成");
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
         } catch (IOException ex) {
+           System.out.println("所有线程已经使用完");
             throw new RuntimeException(ex);
         }
     }
@@ -231,7 +245,6 @@ public class  ThreadPool{
         if (mode.equals("0")){
             //输入文件地址
             System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
-
             //输出文件地址
             System.out.println("输入输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
             //分割方式
@@ -262,6 +275,7 @@ public class  ThreadPool{
         }
         //改变文件命名
 //        changeFileName(inputFilePath);
+
 
     }
 }
