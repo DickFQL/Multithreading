@@ -150,14 +150,14 @@ public class ThreadPool {
                 String line = br.readLine();
                 String[] split = line.split(regex);
                 int len = split.length;
-                System.out.println("执行到这里洛");
+
                 bw.write(handlerFormat(line,regex,len));
 //            line = br.readLine();
                 //第二行至末尾数据处理
                 while((line = br.readLine())!=null){
                     executor.submit(new Concurrency(line,regex,len,bw));
                 }
-                System.out.println("文件处理完成时间:"+System.currentTimeMillis());
+
             } catch (FileNotFoundException ex) {
                 throw new RuntimeException(ex);
             } catch (IOException ex) {
@@ -192,7 +192,6 @@ public class ThreadPool {
                 String value1 = regexLine(line,regexValue1);
                 bw.write(value1+"\n");
             }while ((line = br.readLine())!=null);
-
             System.out.println("文件处理完成");
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
@@ -233,25 +232,27 @@ public class ThreadPool {
     }
 
     public static void main(String[] args) throws ClassNotFoundException, IOException {
-        System.out.println("开始时间："+System.currentTimeMillis());
+
+//        System.out.println("命令格式：java -jar Multithreading.jar <输入文件的绝对路径> <输出文件的绝对路径> <输入数据分割方式> <输入数据处理模式>");
         //        String input = scanner.nextLine(); // 读取一行输入并获取字符串
-        String input = "E:\\IDEAproject\\Multithreading\\American Dentist3.csv"; //args[0];
+        String input = args[0];//"E:\\IDEAproject\\Multithreading\\American Dentist3.csv"; //
         //        String outputFilePath = scanner.nextLine();
-        String outputFilePath = "E:\\IDEAproject\\Multithreading3\\";//args[1];
+        String outputFilePath = args[1];//"E:\\IDEAproject\\Multithreading3\\";//
         //        String regex = scanner.nextLine();
-        String regex = ",";//args[2];
+        String regex = args[2];//",";//
         //        int mode = scanner.nextInt();
-        String mode = "1";//args[3];
+        String mode = args[3];//"1";//
         if (mode.equals("0")){
+            System.out.println("命令格式：java -jar Multithreading.jar <输入文件的绝对路径> <输出文件的绝对路径> <输入数据分割方式> <输入数据处理模式>");
             //输入文件地址
             System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
             //输出文件地址
-            System.out.println("输入输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+            System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
             //分割方式
             //System.out.println("输入数据分割方式，例如:输入1：以逗号分割,输入2：以点号分割，输入3：冒号，输入4：制表符，输入11：非双引号内的逗号，输入21：非数字内的逗号");
-            System.out.println("输入数据分割方式");
+            System.out.println("输入数据分割方式,例如：, : ;");
             //处理方式：常规和非常规
-            System.out.println("输入数据处理模式");
+            System.out.println("输入数据处理模式,例如：0：命令说明；1：常规处理；2：json;3:非常规：[1]=>xxx;[2]=>xxx;");
             return;
         }
         String inputFilePath = input.replace("\"","");

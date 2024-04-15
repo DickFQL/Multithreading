@@ -2,11 +2,10 @@ package org.example.handlerfile;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class  ThreadPool{
+public class noThreadPool {
     /**
      * 分割方式
      * @param integer
@@ -137,7 +136,15 @@ public class  ThreadPool{
      * @param regex
      */
     public static void handlerformal(String inputFilePath,String outputFilePathDouble,String regex){
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath));BufferedWriter bw = new BufferedWriter(new FileWriter(outputFilePathDouble))) {
+        try(BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFilePathDouble), "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilePath),"UTF-8"))) {
+//            FileInputStream fis = new FileInputStream(inputFilePath);
+//            FileOutputStream fos = new FileOutputStream(outputFilePathDouble);
+//            InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+//            OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+//            BufferedReader br = new BufferedReader(isr);
+//            BufferedWriter bw = new BufferedWriter(osw);
+
             System.out.println("文件读取成功，正在处理");
             //第一行数据处理
             String line = br.readLine();
@@ -150,7 +157,7 @@ public class  ThreadPool{
             while((line = br.readLine())!=null){
                 bw.write(handlerFormat(line,regex,len));
             }
-            System.out.println("文件处理完成："+System.currentTimeMillis());
+            System.out.println("文件处理完成");
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
         } catch (IOException ex) {
@@ -219,26 +226,25 @@ public class  ThreadPool{
     }
 
     public static void main(String[] args) throws ClassNotFoundException, IOException {
-        System.out.println("开始时间："+System.currentTimeMillis());
-        //        String input = scanner.nextLine(); // 读取一行输入并获取字符串
-        String input = "E:\\IDEAproject\\Multithreading\\American Dentist3.csv"; //args[0];
-        //        String outputFilePath = scanner.nextLine();
-        String outputFilePath = "E:\\IDEAproject\\Multithreading3\\";//args[1];
-        //        String regex = scanner.nextLine();
-        String regex = ",";//args[2];
-        //        int mode = scanner.nextInt();
-        String mode = "1";//args[3];
+        String input = args[0];
+        String outputFilePath = args[1];
+        String regex = args[2];
+        String mode = args[3];
+/*        String input = "D:\\IDA-workspace\\data\\old\\complex_chinese.csv";
+        String outputFilePath = "D:\\IDA-workspace\\data\\new\\";
+        String regex = ",";
+        String mode = "1";*/
         if (mode.equals("0")){
+            System.out.println("命令格式：java -jar Multithreading.jar <输入文件的绝对路径> <输出文件的绝对路径> <输入数据分割方式> <输入数据处理模式>");
             //输入文件地址
             System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
-
             //输出文件地址
-            System.out.println("输入输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+            System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
             //分割方式
             //System.out.println("输入数据分割方式，例如:输入1：以逗号分割,输入2：以点号分割，输入3：冒号，输入4：制表符，输入11：非双引号内的逗号，输入21：非数字内的逗号");
-            System.out.println("输入数据分割方式");
+            System.out.println("输入数据分割方式,例如：, : ;");
             //处理方式：常规和非常规
-            System.out.println("输入数据处理模式");
+            System.out.println("输入数据处理模式,例如：0：命令说明；1：常规处理；2：json;3:非常规：[1]=>xxx;[2]=>xxx;");
             return;
         }
         String inputFilePath = input.replace("\"","");
