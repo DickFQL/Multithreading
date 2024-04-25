@@ -2,6 +2,7 @@ package org.example.handlerfile;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +47,7 @@ public class noThreadPool {
     public static String outputFileFormat(String inputFilePath ,String outputFilePath){
 
         String[] tmp = inputFilePath.split("\\\\");
-
+        if (outputFilePath.charAt(outputFilePath.length()-1) != '\\' ) outputFilePath +='\\';
          outputFilePath += tmp[tmp.length-1]+".tsv";
         return outputFilePath;
     }
@@ -145,7 +146,7 @@ public class noThreadPool {
 //            BufferedReader br = new BufferedReader(isr);
 //            BufferedWriter bw = new BufferedWriter(osw);
 
-            System.out.println("文件读取成功，正在处理");
+            System.out.println("文件"+inputFilePath+"读取成功，正在处理");
             //第一行数据处理
             String line = br.readLine();
 
@@ -224,46 +225,66 @@ public class noThreadPool {
             throw new RuntimeException(ex);
         }
     }
+    public static String[] test(String... values) {
+        String[] input = new String[10];
+        int i=1;
+        // 遍历可变参数数组，打印每个值
+        for (String value:values) {
 
+            System.out.println();
+            i++;
+        }
+        return input;
+    }
     public static void main(String[] args) throws ClassNotFoundException, IOException {
-        String input = args[0];
-        String outputFilePath = args[1];
-        String regex = args[2];
-        String mode = args[3];
-/*        String input = "D:\\IDA-workspace\\data\\old\\complex_chinese.csv";
-        String outputFilePath = "D:\\IDA-workspace\\data\\new\\";
-        String regex = ",";
-        String mode = "1";*/
-        if (mode.equals("0")){
-            System.out.println("命令格式：java -jar Multithreading.jar <输入文件的绝对路径> <输出文件的绝对路径> <输入数据分割方式> <输入数据处理模式>");
-            //输入文件地址
-            System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
-            //输出文件地址
-            System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+        String input= "";
+        String outputFilePath = "";
+        String regex =  "";
+        String mode = "";
+        Map<Integer,String> outputMap = new HashMap<>();
+
+        try{
+            regex = args[0];
+            mode = args[1];
+            outputFilePath = args[2];
+            for (int i = 0; i < args.length-3; i++) {
+                outputMap.put(i, args[i+3]);
+            }
+        }catch (Exception e){
+            System.out.println("命令格式：java -jar Multithreading.jar <输入数据分割方式> <输入数据处理模式> <输入文件的绝对路径> <输出文件的绝对路径> ");
             //分割方式
             //System.out.println("输入数据分割方式，例如:输入1：以逗号分割,输入2：以点号分割，输入3：冒号，输入4：制表符，输入11：非双引号内的逗号，输入21：非数字内的逗号");
             System.out.println("输入数据分割方式,例如：, : ;");
             //处理方式：常规和非常规
             System.out.println("输入数据处理模式,例如：0：命令说明；1：常规处理；2：json;3:非常规：[1]=>xxx;[2]=>xxx;");
+            //输入文件地址
+            System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+            //输出文件地址
+            System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\");
             return;
         }
-        String inputFilePath = input.replace("\"","");
         //————————————输入完成——————————————————————
-        //根据输入数字转换字符
-        System.out.println("输入的文件名为："+inputFilePath);
+        //展示输入内容
+        //数据分割方式
+        System.out.println("数据分割方式:"+regex);
+        //数据处理模式
+        System.out.println("数据处理模式"+mode);
+        //输出文件的文件夹
+        System.out.println("输出文件的文件夹"+outputFilePath);
+        for (int i = 0; i < args.length-3; i++) {
+            System.out.println("输入的文件名为："+outputMap.get(i));
+        }
 
-        //输入路径调整
-        String outputFilePathDouble = outputFileFormat(inputFilePath,outputFilePath);
-
-        //输出路径调整
-        System.out.println("输出文件名为："+outputFilePathDouble);
-        System.out.println("数据分割方式为："+regex);
+        for (int i = 0; i < args.length-3; i++) {
+            System.out.println("输入的文件名为："+outputMap.get(i));
+        }
         //——————————预处理完成————————————————————
+        //outputFileFormat(String,String),输出路径调整路径调整
         System.out.println("开始处理");
         switch (mode){
-            case "1":handlerformal(inputFilePath,outputFilePathDouble,regex);break;
-            case "2":handlerJson(inputFilePath,outputFilePathDouble);break;
-            case "3":handlerInformal(inputFilePath,outputFilePathDouble,regex);break;
+            case "1":for (int i=0;i< args.length-3;i++) handlerformal(outputMap.get(i),outputFileFormat(outputMap.get(i),outputFilePath),regex);break;
+            case "2":for (int i=0;i< args.length-3;i++) handlerJson(outputMap.get(i),outputFileFormat(outputMap.get(i),outputFilePath));break;
+            case "3":for (int i=0;i< args.length-3;i++) handlerInformal(outputMap.get(i),outputFileFormat(outputMap.get(i),outputFilePath),regex);break;
             default:break;
         }
         //改变文件命名
