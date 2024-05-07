@@ -45,7 +45,7 @@ public class noThreadPool {
      * @return
      */
     public static String outputFileFormat(String inputFilePath ,String outputFilePath){
-
+        //将文件名保存，合并到输出文件路径
         String[] tmp = inputFilePath.split("\\\\");
         if (outputFilePath.charAt(outputFilePath.length()-1) != '\\' ) outputFilePath +='\\';
          outputFilePath += tmp[tmp.length-1]+".tsv";
@@ -79,22 +79,9 @@ public class noThreadPool {
      * @param regex
      * @return
      */
-    public static String handlerTest(String line,String regex){
-//        若字符从最后一位为分隔符，在最后添加空字符串
-        if (line.charAt(0) == regex.charAt(0)) line = "''" + line;
-        if (line.charAt(line.length()-1) == regex.charAt(0)) line += "''";
-//        分割
-        String[] data = line.split(regex);
-        int len = data.length;
-        for (int i=0;i<len;i++) {
-            if (data[i].equals(""))data[i] = "''";
-//            System.out.println("第"+(i+1)+"个字符串为："+data[i]);
-        }
-//        重新拼接
-        String string = String.join(" ",data);
-
-//        string +="\n";
-        System.out.println(string);
+    public static String replaceFormat(String line,String regex,Integer integer){
+        String string = line.replaceAll(regex, "");
+        string += "\n";
         return string;
     }
 
@@ -129,7 +116,29 @@ public class noThreadPool {
         string +="\n";
         return string;
     }
+    public static void replaceChar(String inputFilePath,String outputFilePathDouble,String regex){
+        try(BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFilePathDouble), "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilePath),"UTF-8"))) {
 
+            System.out.println("文件"+inputFilePath+"读取成功，正在处理");
+            //第一行数据处理
+            String line = br.readLine();
+
+            String[] split = line.split(regex);
+            int len = split.length;
+            bw.write(replaceFormat(line,regex,len));
+//            line = br.readLine();
+            //第二行至末尾数据处理
+            while((line = br.readLine())!=null){
+                bw.write(replaceFormat(line,regex,len));
+            }
+            System.out.println("文件处理完成");
+        } catch (FileNotFoundException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     /**
      * 常规分割字符串
      * @param inputFilePath
@@ -159,6 +168,7 @@ public class noThreadPool {
                 bw.write(handlerFormat(line,regex,len));
             }
             System.out.println("文件处理完成");
+            System.out.println("已保存至"+outputFilePathDouble);
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
         } catch (IOException ex) {
@@ -184,8 +194,8 @@ public class noThreadPool {
             //第二行至末行数据填写
             String regexValue1 = ">(.*?)[\\[\\)]";
             do {
-            String value1 = regexLine(line,regexValue1);
-            bw.write(value1+"\n");
+                String value1 = regexLine(line,regexValue1);
+                bw.write(value1+"\n");
             }while ((line = br.readLine())!=null);
 
             System.out.println("文件处理完成");
@@ -212,6 +222,12 @@ public class noThreadPool {
         return firstline;
     }
 
+    /**
+     *
+     * @param inputFilePath
+     * @param outputFilePathDouble
+     */
+
     public static void handlerJson(String inputFilePath,String outputFilePathDouble){
         try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath));BufferedWriter bw = new BufferedWriter(new FileWriter(outputFilePathDouble))) {
             System.out.println("文件读取成功，正在处理");
@@ -225,30 +241,54 @@ public class noThreadPool {
             throw new RuntimeException(ex);
         }
     }
-    public static String[] test(String... values) {
-        String[] input = new String[10];
-        int i=1;
-        // 遍历可变参数数组，打印每个值
-        for (String value:values) {
+    public static void traverseDirectory(File directory,String outputFilePath,String regex,String mode) {
+        // 获取目录中的所有文件和子目录
+        File[] files = directory.listFiles();
 
-            System.out.println();
-            i++;
+        // 遍历文件和子目录
+        for (File file : files) {
+            // 如果是文件，则打印文件路径
+            if (file.isFile()) {
+                switch (mode){
+                    case "0":
+                        replaceChar(file.getAbsolutePath(),outputFileFormat(file.getAbsolutePath(),outputFilePath),regex);
+//                        System.out.println(file.getAbsolutePath());
+                        break;
+                    case "1":
+                        handlerformal(file.getAbsolutePath(),outputFileFormat(file.getAbsolutePath(),outputFilePath),regex);
+//                        System.out.println(file.getAbsolutePath());
+                        break;
+                    case "2":
+                        handlerJson(file.getAbsolutePath(),outputFileFormat(file.getAbsolutePath(),outputFilePath));
+                        break;
+                    case "3":
+                        handlerInformal(file.getAbsolutePath(),outputFileFormat(file.getAbsolutePath(),outputFilePath),regex);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            // 如果是目录，则递归遍历子目录
+            else if (file.isDirectory()) {
+                System.out.println("Directory: " + file.getAbsolutePath());
+                traverseDirectory(file,outputFilePath,regex,mode); // 递归调用遍历子目录
+            }
         }
-        return input;
     }
+
     public static void main(String[] args) throws ClassNotFoundException, IOException {
         String input= "";
         String outputFilePath = "";
         String regex =  "";
         String mode = "";
-        Map<Integer,String> outputMap = new HashMap<>();
+        Map<Integer,String> inputMap = new HashMap<>();
 
         try{
             regex = args[0];
             mode = args[1];
             outputFilePath = args[2];
             for (int i = 0; i < args.length-3; i++) {
-                outputMap.put(i, args[i+3]);
+                inputMap.put(i, args[i+3]);
             }
         }catch (Exception e){
             System.out.println("命令格式：java -jar Multithreading.jar <输入数据分割方式> <输入数据处理模式> <输入文件的绝对路径> <输出文件的绝对路径> ");
@@ -256,11 +296,12 @@ public class noThreadPool {
             //System.out.println("输入数据分割方式，例如:输入1：以逗号分割,输入2：以点号分割，输入3：冒号，输入4：制表符，输入11：非双引号内的逗号，输入21：非数字内的逗号");
             System.out.println("输入数据分割方式,例如：, : ;");
             //处理方式：常规和非常规
-            System.out.println("输入数据处理模式,例如：0：命令说明；1：常规处理；2：json;3:非常规：[1]=>xxx;[2]=>xxx;");
-            //输入文件地址
-            System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+            System.out.println("输入数据处理模式,例如：0：字符串替换；1：常规处理；2：json;3:非常规：[1]=>xxx;[2]=>xxx;");
             //输出文件地址
             System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\");
+            //输入文件地址
+            System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+
             return;
         }
         //————————————输入完成——————————————————————
@@ -272,22 +313,34 @@ public class noThreadPool {
         //输出文件的文件夹
         System.out.println("输出文件的文件夹"+outputFilePath);
         for (int i = 0; i < args.length-3; i++) {
-            System.out.println("输入的文件名为："+outputMap.get(i));
+            System.out.println("输入的文件名为："+inputMap.get(i));
         }
 
-        for (int i = 0; i < args.length-3; i++) {
-            System.out.println("输入的文件名为："+outputMap.get(i));
-        }
         //——————————预处理完成————————————————————
         //outputFileFormat(String,String),输出路径调整路径调整
         System.out.println("开始处理");
-        switch (mode){
-            case "1":for (int i=0;i< args.length-3;i++) handlerformal(outputMap.get(i),outputFileFormat(outputMap.get(i),outputFilePath),regex);break;
-            case "2":for (int i=0;i< args.length-3;i++) handlerJson(outputMap.get(i),outputFileFormat(outputMap.get(i),outputFilePath));break;
-            case "3":for (int i=0;i< args.length-3;i++) handlerInformal(outputMap.get(i),outputFileFormat(outputMap.get(i),outputFilePath),regex);break;
-            default:break;
+        Boolean isDirtory = new File(inputMap.get(0)).isDirectory();
+        if (isDirtory) traverseDirectory(new File(inputMap.get(0)),outputFilePath,regex,mode);
+        else {
+            switch (mode){
+                case "0":
+                    for (int i=0;i< args.length-3;i++) replaceChar(inputMap.get(i),outputFileFormat(inputMap.get(i),outputFilePath),regex);
+                    break;
+                case "1":
+                    for (int i=0;i< args.length-3;i++) handlerformal(inputMap.get(i),outputFileFormat(inputMap.get(i),outputFilePath),regex);
+                    break;
+                case "2":
+                    for (int i=0;i< args.length-3;i++) handlerJson(inputMap.get(i),outputFileFormat(inputMap.get(i),outputFilePath));
+                    break;
+                case "3":
+                    for (int i=0;i< args.length-3;i++) handlerInformal(inputMap.get(i),outputFileFormat(inputMap.get(i),outputFilePath),regex);
+                    break;
+                default:
+                    break;
+            }
         }
-        //改变文件命名
+
+        //改变文件命名,test
 //        changeFileName(inputFilePath);
 
     }
