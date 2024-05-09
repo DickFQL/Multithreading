@@ -1,5 +1,10 @@
 package org.example.handlerfile;
 
+
+
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +45,7 @@ public class noThreadPool {
         return intputFilePathoutput;
     }
     /**
-     * 调整输出文件的格式
+     * 调整输出文件的格式，改变文件名称加后缀
      * @param inputFilePath
      * @return
      */
@@ -49,6 +54,18 @@ public class noThreadPool {
         String[] tmp = inputFilePath.split("\\\\");
         if (outputFilePath.charAt(outputFilePath.length()-1) != '\\' ) outputFilePath +='\\';
          outputFilePath += tmp[tmp.length-1]+".tsv";
+        return outputFilePath;
+    }
+    /**
+     * 调整输出文件的格式,不改变文件名称
+     * @param inputFilePath
+     * @return
+     */
+    public static String outputFileFormatNo(String inputFilePath ,String outputFilePath){
+        //将文件名保存，合并到输出文件路径
+        String[] tmp = inputFilePath.split("\\\\");
+        if (outputFilePath.charAt(outputFilePath.length()-1) != '\\' ) outputFilePath +='\\';
+        outputFilePath += tmp[tmp.length-1];
         return outputFilePath;
     }
 
@@ -85,36 +102,55 @@ public class noThreadPool {
         return string;
     }
 
+    public static boolean isBlank(String cs) {
+        int strLen = cs.length();
+        if (strLen == 0) {
+            return true;
+        } else {
+            for(int i = 0; i < strLen; ++i) {
+                if (!Character.isWhitespace(cs.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     /**
      * 处理文件中每一行数据的格式
-     * @param line
-     * @param regex
+     * @param line 文件中的每一行数据
+     * @param regex 需要匹配的字符
      * @return
      */
     public static String handlerFormat(String line,String regex,Integer integer){
 //        若字符从第一位、最后一位为分隔符，在最后添加空字符串
-        if (line.charAt(0) == regex.charAt(0)) line = "''" + line;
+                if (line.charAt(0) == regex.charAt(0)) line = "''" + line;
         if (line.charAt(line.length()-1) == regex.charAt(0)) line += "''";
 //        分割
-        String[] data = line.split(regex);
-        String string = "";
-        int len = data.length;
+        String[] datas = line.split(regex);
+        StringBuilder string = new StringBuilder();
+
+        int len = datas.length;
+
         for (int i=0;i<integer;i++) {
             if (i==0) {
-                string = data[i];
+                string = new StringBuilder(datas[i]);
                 continue;
             }
             if (i < len )  {
-                if (data[i].equals(""))  string += "\t''";
-                else string += "\t"+ data[i];
+                //StringUtils不能使用？？？？？？？？
+
+                if (isBlank(datas[i]))  string.append("\t").append("''");
+                else string.append("\t").append(datas[i]);
+                            }
+            else {
+                string.append("\t").append("''");
             }
-            else string += "\t''";
-//            System.out.println("第"+(i+1)+"个字符串为："+string);
         }
 //        重新拼接
 
-        string +="\n";
-        return string;
+        string.append("\n");
+        return string.toString();
     }
     public static void replaceChar(String inputFilePath,String outputFilePathDouble,String regex){
         try(BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFilePathDouble), "UTF-8"));
@@ -133,6 +169,7 @@ public class noThreadPool {
                 bw.write(replaceFormat(line,regex,len));
             }
             System.out.println("文件处理完成");
+            System.out.println("已保存至"+outputFilePathDouble);
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
         } catch (IOException ex) {
@@ -161,6 +198,7 @@ public class noThreadPool {
 
             String[] split = line.split(regex);
             int len = split.length;
+
             bw.write(handlerFormat(line,regex,len));
 //            line = br.readLine();
             //第二行至末尾数据处理
@@ -251,7 +289,7 @@ public class noThreadPool {
             if (file.isFile()) {
                 switch (mode){
                     case "0":
-                        replaceChar(file.getAbsolutePath(),outputFileFormat(file.getAbsolutePath(),outputFilePath),regex);
+                        replaceChar(file.getAbsolutePath(),outputFileFormatNo(file.getAbsolutePath(),outputFilePath),regex);
 //                        System.out.println(file.getAbsolutePath());
                         break;
                     case "1":
@@ -277,12 +315,30 @@ public class noThreadPool {
     }
 
     public static void main(String[] args) throws ClassNotFoundException, IOException {
-        String input= "";
+        String input= ",1,1,,1,,";
         String outputFilePath = "";
         String regex =  "";
         String mode = "";
         Map<Integer,String> inputMap = new HashMap<>();
+        //测试
+        String[] split = input.split(",");
+//test
+//        System.out.println(split.length);
+//        for (String s : split) {
+//            if (StringUtils.isBlank(s)) System.out.println("这是空格或空");
+//            else System.out.println(s);
+//        }
+//        System.out.println("=======");
+//        for (int i = 0; i < 5; i++) {
+//            if (StringUtils.isBlank(split[i])) System.out.println("这是空格或空");
+////            if (split[i].equals(""))System.out.println("这是空格或空");
+//            else System.out.println(split[i]);
+//        }
 
+//        regex = ",";
+//        mode = "1";
+//        outputFilePath ="D:\\IDA-workspace\\data\\test\\";
+//        inputMap.put(0,"D:\\IDA-workspace\\data\\old\\American Dentist3.csv");
         try{
             regex = args[0];
             mode = args[1];
@@ -301,7 +357,6 @@ public class noThreadPool {
             System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\");
             //输入文件地址
             System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
-
             return;
         }
         //————————————输入完成——————————————————————
@@ -309,7 +364,7 @@ public class noThreadPool {
         //数据分割方式
         System.out.println("数据分割方式:"+regex);
         //数据处理模式
-        System.out.println("数据处理模式"+mode);
+        System.out.println("数据处理模式:"+mode);
         //输出文件的文件夹
         System.out.println("输出文件的文件夹"+outputFilePath);
         for (int i = 0; i < args.length-3; i++) {
@@ -324,9 +379,11 @@ public class noThreadPool {
         else {
             switch (mode){
                 case "0":
-                    for (int i=0;i< args.length-3;i++) replaceChar(inputMap.get(i),outputFileFormat(inputMap.get(i),outputFilePath),regex);
+                    System.out.println(0);
+                    for (int i=0;i< args.length-3;i++) replaceChar(inputMap.get(i),outputFileFormatNo(inputMap.get(i),outputFilePath),regex);
                     break;
                 case "1":
+
                     for (int i=0;i< args.length-3;i++) handlerformal(inputMap.get(i),outputFileFormat(inputMap.get(i),outputFilePath),regex);
                     break;
                 case "2":
