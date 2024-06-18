@@ -261,7 +261,7 @@ public class noThreadPool {
     }
 
     /**
-     *
+     *处理Json格式的数据
      * @param inputFilePath
      * @param outputFilePathDouble
      */
@@ -357,6 +357,7 @@ public class noThreadPool {
             System.out.println("输出文件的绝对路径，例如：D:\\IDA-workspace\\Multithreading\\data\\");
             //输入文件地址
             System.out.println("输入文件的绝对路径，例如： D:\\IDA-workspace\\Multithreading\\data\\TSDM.txt");
+            System.out.println(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
             return;
         }
         //————————————输入完成——————————————————————
