@@ -14,6 +14,13 @@ import java.util.Map;
 import static org.example.controller.noThreadPool.*;
 
 public class Main {
+    /**
+     * 建议的优化：百万千万数据正常数据与异常数据分文件处理
+     *  异常获取，判断双引号奇数还是偶数
+     *
+     * 读写分离，一个线程读、一个线程写
+     *
+     */
     public static final Integer numArgs = 4;
 
     //处理模式：常规和非常规
