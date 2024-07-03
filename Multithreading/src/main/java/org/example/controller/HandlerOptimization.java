@@ -1,4 +1,4 @@
-package org.example.handlerfile;
+package org.example.controller;
 
 
 //import cn.hutool.json.JSONUtil;
@@ -48,6 +48,7 @@ public class HandlerOptimization {
             //35945361
             for (int i = 1; i < 35945361; i++) {
                 if (i%100000==0)  {
+
                     processTime.append("当前进度：").append(i).append("/35945361,已处理时间(毫秒):").append(System.currentTimeMillis()-startTime);
                     System.out.println(processTime.toString());
                     processTime.setLength(0);

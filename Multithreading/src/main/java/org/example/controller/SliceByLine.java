@@ -1,21 +1,26 @@
-package org.example.handlerfile;
+package org.example.controller;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class SliceTest {
+public class SliceByLine {
 
-    public static void main(String[] args) throws Exception
+    public static void seperate(String filePathName) throws Exception
     {
-        RandomAccessFile raf = new RandomAccessFile("D:\\IDA-workspace\\DataHandler\\dataHandler\\src\\main\\resources\\test.csv", "r");
+        RandomAccessFile raf = new RandomAccessFile(filePathName, "r");
+        //分割数量
         long numSplits = 10; //from user input, extract it from args
+        //文件大小
         long sourceSize = raf.length();
+        //每个文件大小
         long bytesPerSplit = sourceSize/numSplits ;
+        //最后一个文件的余量
         long remainingBytes = sourceSize % numSplits;
 
         int maxReadBufferSize = 8 * 1024; //8KB
+        //循环分割
         for(int destIx=1; destIx <= numSplits; destIx++) {
             BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream("split."+destIx));
             if(bytesPerSplit > maxReadBufferSize) {
@@ -52,3 +57,4 @@ public class SliceTest {
         }
     }
 }
+
